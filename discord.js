@@ -1,17 +1,15 @@
-const CLIENT_ID = '1361826455406772408'; // Remplacez par votre vrai Client ID
-const REDIRECT_URI = window.location.origin + '/callback'; // Utilise l'URL actuelle du site
+const CLIENT_ID = '1361826455406772408';
+const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/#dashboard';
 
 document.getElementById('login-discord').addEventListener('click', () => {
-    // Assurez-vous que cette URL correspond EXACTEMENT à celle configurée dans le portail Discord
     const params = new URLSearchParams({
         client_id: CLIENT_ID,
         redirect_uri: REDIRECT_URI,
         response_type: 'code',
-        scope: 'identify guilds bot',
-        permissions: '8'
+        scope: 'connections identify guilds applications.commands.permissions.update guilds.members.read'
     });
 
-    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+    window.location.href = `https://discord.com/oauth2/authorize?${params}`;
 });
 
 // Fonction pour mettre à jour les statistiques
