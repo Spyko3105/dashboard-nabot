@@ -43,6 +43,42 @@ function getAuthCode() {
     return urlParams.get('code');
 }
 
+// Fonction pour récupérer les serveurs de l'utilisateur
+async function fetchUserGuilds(accessToken) {
+    try {
+        const response = await fetch('https://discord.com/api/users/@me/guilds', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        const guilds = await response.json();
+        displayGuilds(guilds);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des serveurs:', error);
+    }
+}
+
+// Fonction pour afficher les serveurs
+function displayGuilds(guilds) {
+    const container = document.getElementById('servers-container');
+    container.innerHTML = '';
+    
+    guilds.forEach(guild => {
+        const guildElement = document.createElement('div');
+        guildElement.className = 'server-card';
+        guildElement.innerHTML = `
+            <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" 
+                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                 alt="${guild.name}">
+            <h3>${guild.name}</h3>
+            <button onclick="selectServer('${guild.id}')" class="server-select-btn">
+                ${guild.bot_added ? 'Gérer' : 'Ajouter le bot'}
+            </button>
+        `;
+        container.appendChild(guildElement);
+    });
+}
+
 // Fonction pour afficher le profil utilisateur
 async function displayUserProfile(accessToken) {
     try {
@@ -53,11 +89,17 @@ async function displayUserProfile(accessToken) {
         });
         const userData = await response.json();
         
-        // Afficher les informations du profil
+        const avatarUrl = userData.avatar 
+            ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
         document.getElementById('profile-section').style.display = 'flex';
-        document.getElementById('profile-avatar').src = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`;
+        document.getElementById('profile-avatar').src = avatarUrl;
         document.getElementById('profile-username').textContent = userData.username;
         document.getElementById('profile-discriminator').textContent = `#${userData.discriminator}`;
+        
+        // Récupérer les serveurs après le profil
+        await fetchUserGuilds(accessToken);
         
         // Cacher le bouton de connexion
         document.getElementById('login-discord').style.display = 'none';
