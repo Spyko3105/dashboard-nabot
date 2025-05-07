@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Bot Discord</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="discord.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2><i class="fab fa-discord"></i> Mon Bot</h2>
+            <nav>
+                <a href="#dashboard" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="#commandes"><i class="fas fa-terminal"></i> Commandes</a>
+                <a href="#settings"><i class="fas fa-cog"></i> Paramètres</a>
+            </nav>
+            <div class="auth-section">
+                <button id="login-discord" class="discord-login">
+                    <i class="fab fa-discord"></i> Connexion Discord
+                </button>
+            </div>
+        </aside>
+        <main class="content">
+            <header class="dashboard-header">
+                <h1>Dashboard</h1>
+                <div class="server-select">
+                    <select>
+                        <option>Sélectionner un serveur</option>
+                        <option>Serveur 1</option>
+                        <option>Serveur 2</option>
+                    </select>
+                </div>
+            </header>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Utilisateurs</h3>
+                    <p class="stat-number">0</p>
+                    <i class="fas fa-users stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <h3>Serveurs</h3>
+                    <p class="stat-number">0</p>
+                    <i class="fas fa-server stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <h3>Commandes</h3>
+                    <p class="stat-number">0</p>
+                    <i class="fas fa-terminal stat-icon"></i>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
