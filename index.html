@@ -106,6 +106,24 @@
                             </select>
                         </div>
                     </div>
+                    <div class="settings-card animate-in">
+                        <h3>Apparence</h3>
+                        <div class="theme-selector">
+                            <div class="theme-option" onclick="updateTheme('dark')">Sombre</div>
+                            <div class="theme-option" onclick="updateTheme('light')">Clair</div>
+                        </div>
+                    </div>
+                    <div class="settings-card animate-in">
+                        <h3>Notifications</h3>
+                        <div class="setting-item">
+                            <label for="notif-mentions">Mentions</label>
+                            <input type="checkbox" id="notif-mentions">
+                        </div>
+                        <div class="setting-item">
+                            <label for="notif-messages">Messages</label>
+                            <input type="checkbox" id="notif-messages">
+                        </div>
+                    </div>
                 </div>
                 <button class="save-settings">Sauvegarder les changements</button>
             </section>
