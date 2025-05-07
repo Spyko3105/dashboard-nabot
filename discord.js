@@ -189,17 +189,107 @@ document.querySelector('.save-settings')?.addEventListener('click', async () => 
     }
 });
 
+// Fonction pour gérer l'authentification initiale
+async function handleAuth() {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const [accessToken, tokenType] = [fragment.get('access_token'), fragment.get('token_type')];
+
+    if (accessToken) {
+        localStorage.setItem('discord_token', accessToken);
+        await initializeDashboard(accessToken);
+    }
+}
+
+// Fonction d'initialisation du dashboard
+async function initializeDashboard(token) {
+    try {
+        const userResponse = await fetch('https://discord.com/api/users/@me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const userData = await userResponse.json();
+        
+        // Mise à jour du profil
+        updateProfile(userData);
+        
+        // Charger les serveurs
+        await fetchUserGuilds(token);
+        
+        // Initialiser les paramètres
+        await initializeSettings(userData.id);
+        
+        // Activer les animations
+        enableDashboardAnimations();
+    } catch (error) {
+        console.error('Erreur d\'initialisation:', error);
+    }
+}
+
+// Fonction de mise à jour du profil
+function updateProfile(user) {
+    const avatarUrl = user.avatar 
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` 
+        : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator) % 5}.png`;
+
+    document.getElementById('profile-avatar').src = avatarUrl;
+    document.getElementById('profile-username').textContent = user.username;
+    document.getElementById('profile-tag').textContent = `#${user.discriminator}`;
+    
+    // Afficher la section profil avec animation
+    const profileSection = document.getElementById('profile-section');
+    profileSection.style.display = 'flex';
+    profileSection.style.animation = 'fadeIn 0.5s ease-in-out';
+}
+
+// Nouvelles fonctions pour les paramètres
+function initializeSettings(userId) {
+    const defaultSettings = {
+        theme: localStorage.getItem('dashboard_theme') || 'dark',
+        language: localStorage.getItem('dashboard_lang') || 'fr',
+        notifications: JSON.parse(localStorage.getItem('notifications')) || {
+            mentions: true,
+            messages: false,
+            updates: true
+        }
+    };
+
+    updateTheme(defaultSettings.theme);
+    updateLanguage(defaultSettings.language);
+    setupNotificationPreferences(defaultSettings.notifications);
+}
+
+function updateTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('dashboard_theme', theme);
+}
+
+function setupNotificationPreferences(prefs) {
+    // Mettre à jour l'interface des notifications
+    Object.entries(prefs).forEach(([key, value]) => {
+        const checkbox = document.getElementById(`notif-${key}`);
+        if (checkbox) checkbox.checked = value;
+    });
+}
+
+// Animations du dashboard
+function enableDashboardAnimations() {
+    const cards = document.querySelectorAll('.stat-card, .server-card');
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    });
+}
+
 // Vérifier l'auth au chargement
 checkAuth();
 
-// Vérifier l'authentification au chargement
+// Gestionnaire d'événements
 window.onload = async () => {
-    const code = getAuthCode();
-    if (code) {
-        const accessToken = await exchangeCodeForToken(code);
-        if (accessToken) {
-            await displayUserProfile(accessToken);
-            await fetchUserGuilds(accessToken);
-        }
-    }
+    await handleAuth();
+    enableDashboardAnimations();
 };
