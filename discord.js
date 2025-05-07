@@ -37,5 +37,45 @@ async function checkAuth() {
     }
 }
 
+// Fonction pour extraire le code d'autorisation de l'URL
+function getAuthCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('code');
+}
+
+// Fonction pour afficher le profil utilisateur
+async function displayUserProfile(accessToken) {
+    try {
+        const response = await fetch('https://discord.com/api/users/@me', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        const userData = await response.json();
+        
+        // Afficher les informations du profil
+        document.getElementById('profile-section').style.display = 'flex';
+        document.getElementById('profile-avatar').src = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`;
+        document.getElementById('profile-username').textContent = userData.username;
+        document.getElementById('profile-discriminator').textContent = `#${userData.discriminator}`;
+        
+        // Cacher le bouton de connexion
+        document.getElementById('login-discord').style.display = 'none';
+    } catch (error) {
+        console.error('Erreur lors de la récupération du profil:', error);
+    }
+}
+
 // Vérifier l'auth au chargement
 checkAuth();
+
+// Vérifier l'authentification au chargement
+window.onload = async () => {
+    const code = getAuthCode();
+    if (code) {
+        // TODO: Échanger le code contre un token d'accès via votre backend
+        // Pour l'exemple, on simule un token
+        const mockAccessToken = code;
+        await displayUserProfile(mockAccessToken);
+    }
+};
