@@ -143,3 +143,35 @@ select {
 .discord-login:hover {
     background-color: #5f73bc;
 }
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+#profile-username {
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+#profile-discriminator {
+    color: var(--text-color);
+    opacity: 0.8;
+    font-size: 0.9em;
+}
