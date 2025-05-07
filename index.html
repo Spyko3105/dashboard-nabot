@@ -15,9 +15,12 @@
             <!-- Ajout de la section profil -->
             <div class="profile-section" id="profile-section">
                 <div class="profile-header">
-                    <img src="https://cdn.discordapp.com/avatars/default.png" alt="Avatar" id="profile-avatar" class="profile-avatar">
+                    <div class="profile-avatar-wrapper">
+                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" id="profile-avatar" class="profile-avatar">
+                        <div class="profile-status"></div>
+                    </div>
                     <div class="profile-info">
-                        <span id="profile-username">Non connecté</span>
+                        <span id="profile-username">Chargement...</span>
                         <span id="profile-tag"></span>
                     </div>
                 </div>
@@ -66,6 +69,45 @@
                 <div class="servers-grid" id="servers-container">
                     <!-- Les serveurs seront ajoutés ici dynamiquement -->
                 </div>
+            </section>
+            <section id="settings" class="settings-section hidden">
+                <h2>Paramètres</h2>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Préférences du Bot</h3>
+                        <div class="setting-item">
+                            <label>Préfixe du bot</label>
+                            <input type="text" id="bot-prefix" placeholder="!">
+                        </div>
+                        <div class="setting-item">
+                            <label>Messages de bienvenue</label>
+                            <label class="switch">
+                                <input type="checkbox" id="welcome-messages">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Autorisations</h3>
+                        <div class="setting-item">
+                            <label>Commandes modération</label>
+                            <select id="mod-commands">
+                                <option value="admins">Admins uniquement</option>
+                                <option value="mods">Modérateurs</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Notifications</h3>
+                        <div class="setting-item">
+                            <label>Logs de modération</label>
+                            <select id="mod-logs-channel">
+                                <option value="">Sélectionner un canal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="save-settings">Sauvegarder les changements</button>
             </section>
         </main>
     </div>
