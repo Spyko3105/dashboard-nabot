@@ -249,6 +249,7 @@ select {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .settings-card {
@@ -341,4 +342,66 @@ input:checked + .slider:before {
 
 .hidden {
     display: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Thèmes */
+[data-theme="dark"] {
+    --bg-primary: #2f3136;
+    --bg-secondary: #36393f;
+    --text-primary: #ffffff;
+    --text-secondary: #dcddde;
+}
+
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f2f3f5;
+    --text-primary: #2f3136;
+    --text-secondary: #4f545c;
+}
+
+/* Nouvelles classes d'animation */
+.animate-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Styles des paramètres */
+.theme-selector {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.theme-option {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.theme-option.active {
+    background: var(--primary-color);
+    color: white;
 }
