@@ -1,8 +1,10 @@
 :root {
-    --primary-color: #7289da;
-    --background-dark: #2f3136;
-    --background-light: #36393f;
-    --text-color: #ffffff;
+    --primary-color: #5865F2;
+    --secondary-color: #3BA55C;
+    --background-dark: #2F3136;
+    --background-light: #36393F;
+    --text-color: #FFFFFF;
+    --danger-color: #ED4245;
 }
 
 body {
@@ -351,7 +353,7 @@ input:checked + .slider:before {
 }
 
 @keyframes slideIn {
-    from { transform: translateX(-20px); opacity: 0; }
+    from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
 
@@ -404,4 +406,86 @@ input:checked + .slider:before {
 .theme-option.active {
     background: var(--primary-color);
     color: white;
+}
+
+/* Styles pour les messages d'état */
+.status-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    background: var(--primary-color);
+    color: white;
+    z-index: 1000;
+    display: none;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Styles pour les animations de chargement */
+.loading {
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: inherit;
+}
+
+/* Nouvelles sections */
+.dashboard-section {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.dashboard-section.active {
+    display: block;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.action-btn {
+    background: var(--background-light);
+    border: none;
+    padding: 10px 20px;
+    color: var(--text-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+}
+
+.commands-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.command-item {
+    background: var(--background-light);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
