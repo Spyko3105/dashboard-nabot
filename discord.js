@@ -1,7 +1,8 @@
 const CLIENT_ID = '1361826455406772408';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || 'gjtCsa642TLGIMaQS0j9CaqLa-xcaOYM';
-const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/callback';
+const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/';
 const API_ENDPOINT = 'https://discord.com/api/v10';
+const SCOPES = 'connections identify guilds guilds.members.read';
 
 // État de l'application
 const state = {
@@ -25,17 +26,71 @@ async function init() {
     }
 }
 
-// Fonction d'authentification améliorée
-async function authenticateWithDiscord() {
+// Fonction de connexion améliorée
+function loginWithDiscord() {
     const params = new URLSearchParams({
         client_id: CLIENT_ID,
         redirect_uri: REDIRECT_URI,
         response_type: 'code',
-        scope: 'identify guilds bot applications.commands',
-        prompt: 'consent'
+        scope: SCOPES
     });
 
-    window.location.href = `${API_ENDPOINT}/oauth2/authorize?${params}`;
+    window.location.href = `https://discord.com/oauth2/authorize?${params}`;
+}
+
+// Gestionnaire d'authentification
+async function handleAuth() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code) {
+        try {
+            // Stocker le code d'autorisation
+            localStorage.setItem('discord_auth_code', code);
+            await fetchUserProfile(code);
+        } catch (error) {
+            console.error('Erreur d\'authentification:', error);
+        }
+    }
+}
+
+async function fetchUserProfile(code) {
+    try {
+        const response = await fetch('https://discord.com/api/users/@me', {
+            headers: {
+                'Authorization': `Bearer ${code}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Erreur de récupération du profil');
+
+        const userData = await response.json();
+        updateProfileUI(userData);
+    } catch (error) {
+        console.error('Erreur lors de la récupération du profil:', error);
+    }
+}
+
+function updateProfileUI(user) {
+    // Mise à jour de l'avatar
+    const avatarUrl = user.avatar 
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`
+        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+    
+    const profileAvatar = document.getElementById('profile-avatar');
+    const profileUsername = document.getElementById('profile-username');
+    const profileTag = document.getElementById('profile-tag');
+    const loginButton = document.getElementById('login-discord');
+    
+    profileAvatar.src = avatarUrl;
+    profileUsername.textContent = user.username;
+    profileTag.textContent = `#${user.discriminator}`;
+    
+    // Cacher le bouton de connexion
+    loginButton.style.display = 'none';
+    
+    // Afficher la section profil
+    document.getElementById('profile-section').style.display = 'flex';
 }
 
 // Gestion du callback
@@ -80,21 +135,9 @@ async function fetchUserData(token) {
     await fetchUserGuilds(token);
 }
 
-// Mise à jour de l'interface utilisateur
-function updateProfileUI(user) {
-    const avatarUrl = user.avatar 
-        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`
-        : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
-
-    document.getElementById('profile-avatar').src = avatarUrl;
-    document.getElementById('profile-username').textContent = user.username;
-    document.getElementById('profile-tag').textContent = `#${user.discriminator}`;
-    
-    document.getElementById('profile-section').style.display = 'flex';
-}
-
 // Écouteurs d'événements
-document.getElementById('login-discord').addEventListener('click', authenticateWithDiscord);
+document.getElementById('login-discord').addEventListener('click', loginWithDiscord);
+window.addEventListener('load', handleAuth);
 
 // Gestionnaire de navigation
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -171,12 +214,5 @@ async function loadCommands() {
 
 // Vérification de l'URL pour le callback
 window.onload = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    
-    if (code) {
-        handleCallback(code);
-    } else {
-        init();
-    }
+    handleAuth();
 };
