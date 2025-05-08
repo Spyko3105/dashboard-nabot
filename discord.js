@@ -96,6 +96,79 @@ function updateProfileUI(user) {
 // Écouteurs d'événements
 document.getElementById('login-discord').addEventListener('click', authenticateWithDiscord);
 
+// Gestionnaire de navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = item.dataset.section;
+        switchSection(section);
+    });
+});
+
+function switchSection(sectionId) {
+    // Mettre à jour la navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+
+    // Afficher la section
+    document.querySelectorAll('.dashboard-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.getElementById(sectionId).classList.add('active');
+
+    // Charger les données spécifiques
+    loadSectionData(sectionId);
+}
+
+async function loadSectionData(section) {
+    const token = localStorage.getItem('discord_token');
+    if (!token) return;
+
+    try {
+        switch(section) {
+            case 'commands':
+                await loadCommands();
+                break;
+            case 'automod':
+                await loadAutoModSettings();
+                break;
+            // Ajouter d'autres cas pour les différentes sections
+        }
+    } catch (error) {
+        console.error(`Erreur lors du chargement de la section ${section}:`, error);
+    }
+}
+
+// Fonction pour charger les commandes
+async function loadCommands() {
+    const commandsContainer = document.querySelector('.command-list');
+    try {
+        const response = await fetch('/api/commands', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('discord_token')}`
+            }
+        });
+        const commands = await response.json();
+        
+        commandsContainer.innerHTML = commands.map(cmd => `
+            <div class="command-item">
+                <div class="command-info">
+                    <h4>${cmd.name}</h4>
+                    <p>${cmd.description}</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" ${cmd.enabled ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Erreur lors du chargement des commandes:', error);
+    }
+}
+
 // Vérification de l'URL pour le callback
 window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
