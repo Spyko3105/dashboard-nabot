@@ -26,7 +26,7 @@ async function init() {
     }
 }
 
-// Fonction de connexion améliorée
+// Fonction de connexion mise à jour
 function loginWithDiscord() {
     const params = new URLSearchParams({
         client_id: CLIENT_ID,
@@ -45,9 +45,11 @@ async function handleAuth() {
     
     if (code) {
         try {
-            // Stocker le code d'autorisation
-            localStorage.setItem('discord_auth_code', code);
-            await fetchUserProfile(code);
+            const token = await exchangeCode(code);
+            if (token) {
+                localStorage.setItem('discord_token', token);
+                await fetchUserData(token);
+            }
         } catch (error) {
             console.error('Erreur d\'authentification:', error);
         }
