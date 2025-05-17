@@ -134,7 +134,7 @@ client.login('VOTRE_TOKEN_BOT');
     <script>
         const CLIENT_ID = '1361826455406772408';
         const REDIRECT_URI = 'http://127.0.0.1:5500/index.html?';
-        const SCOPE = 'identify';
+        const SCOPE = 'guilds identify';
 
         function showUser(user) {
             const statusBar = document.querySelector('.status-bar');
@@ -147,15 +147,110 @@ client.login('VOTRE_TOKEN_BOT');
             `;
         }
 
+        function hasAdmin(permissions) {
+            // 0x8 = ADMINISTRATOR
+            return (BigInt(permissions) & 0x8n) === 0x8n;
+        }
+
+        // Simulez ici les serveurs où le bot est déjà présent (à remplacer par votre backend)
+        function isBotInGuild(guildId) {
+            // Par exemple, le bot est sur les 2 premiers serveurs de la liste
+            // Remplacez cette logique par un appel backend réel
+            const botGuilds = window._botGuilds || [];
+            return botGuilds.includes(guildId);
+        }
+
+        function showGuilds(guilds) {
+            // Simulez la liste des serveurs où le bot est déjà (à remplacer par backend)
+            // window._botGuilds = ['id1', 'id2', ...];
+            // Pour la démo, on prend les 2 premiers serveurs
+            window._botGuilds = guilds.slice(0, 2).map(g => g.id);
+
+            let html = `
+                <div class="guilds-list" style="margin-top:16px;">
+                    <h4>Vos serveurs Discord</h4>
+                    <ul style="list-style:none;padding:0;">
+                        ${guilds.map(guild => {
+                            const admin = hasAdmin(guild.permissions);
+                            const botIn = isBotInGuild(guild.id);
+                            return `
+                                <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;">
+                                    <div style="display:flex;align-items:center;">
+                                        <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
+                                        <span style="font-weight:600;">${guild.name}</span>
+                                        ${admin ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
+                                    </div>
+                                    <div>
+                                        ${botIn
+                                            ? '<span title="Le bot est déjà sur ce serveur" style="color:#5865f2;font-size:1.2em;"><i class="fa-brands fa-discord"></i></span>'
+                                            : `<button class="add-bot-btn" data-guild="${guild.id}" style="background:#5865f2;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:600;">Ajouter le bot</button>`
+                                        }
+                                    </div>
+                                </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                </div>
+            `;
+            // Supprime l'ancienne liste si elle existe
+            document.querySelectorAll('.guilds-list').forEach(e => e.remove());
+            const statusBar = document.querySelector('.status-bar');
+            statusBar.insertAdjacentHTML('afterend', html);
+
+            // Ajoute l'événement sur les boutons "Ajouter le bot"
+            document.querySelectorAll('.add-bot-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guildId = this.getAttribute('data-guild');
+                    const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=8&guild_id=${guildId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code`;
+                    window.open(inviteUrl, '_blank');
+                });
+            });
+        }
+
         document.querySelectorAll('.btn-login').forEach(btn => {
             btn.addEventListener('click', () => {
+                // Utilisez response_type=token pour pouvoir récupérer le token côté front
                 const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
                 window.location.href = discordAuth;
             });
         });
 
+        // --- AJOUT : Récupération des stats, utilisateurs et commandes depuis le backend du bot ---
+        function updateDashboardStats(stats) {
+            document.querySelector('.dashboard-cards .card:nth-child(1) .number').textContent = stats.guilds ?? '-';
+            document.querySelector('.dashboard-cards .card:nth-child(2) .number').textContent = stats.users ?? '-';
+            document.querySelector('.dashboard-cards .card:nth-child(3) .number').textContent = stats.commands ?? '-';
+        }
+
+        function updateCommands(commands) {
+            const tbody = document.querySelector('.commands-table tbody');
+            tbody.innerHTML = commands.map(cmd => `
+                <tr>
+                    <td>${cmd.name}</td>
+                    <td>${cmd.description}</td>
+                    <td><input type="checkbox" ${cmd.enabled ? 'checked' : ''} disabled></td>
+                </tr>
+            `).join('');
+        }
+
+        // Exemple d'appel à votre backend Node.js relié au bot Discord
+        function fetchBotData() {
+            fetch('http://127.0.0.1:3000/api/dashboard') // À adapter selon votre backend
+                .then(res => res.json())
+                .then(data => {
+                    if (data.stats) updateDashboardStats(data.stats);
+                    if (data.commands) updateCommands(data.commands);
+                    // Pour la liste des serveurs où le bot est, mettez à jour window._botGuilds
+                    if (data.botGuilds) window._botGuilds = data.botGuilds;
+                })
+                .catch(() => {
+                    // Optionnel : afficher une erreur ou laisser les valeurs par défaut
+                });
+        }
+
         // Gestion de la connexion utilisateur après redirection OAuth2
         window.addEventListener('load', () => {
+            fetchBotData(); // Met à jour stats, users, commandes, guilds du bot
             if (window.location.hash) {
                 const params = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = params.get('access_token');
@@ -168,6 +263,15 @@ client.login('VOTRE_TOKEN_BOT');
                     .then(res => res.json())
                     .then(user => {
                         showUser(user);
+                        fetch('https://discord.com/api/users/@me/guilds', {
+                            headers: {
+                                'Authorization': 'Bearer ' + accessToken
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(guilds => {
+                            showGuilds(guilds);
+                        });
                     })
                     .catch(() => {
                         alert("Erreur lors de la récupération du profil Discord.");
