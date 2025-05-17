@@ -136,23 +136,42 @@ client.login('VOTRE_TOKEN_BOT');
         const REDIRECT_URI = 'http://127.0.0.1:5500/index.html?';
         const SCOPE = 'identify';
 
+        function showUser(user) {
+            const statusBar = document.querySelector('.status-bar');
+            statusBar.innerHTML = `
+                <span class="status online"><i class="fa-solid fa-circle"></i> Connecté !</span>
+                <span class="discord-user">
+                    <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="avatar" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;margin-right:8px;">
+                    <b>${user.username}#${user.discriminator}</b>
+                </span>
+            `;
+        }
+
         document.querySelectorAll('.btn-login').forEach(btn => {
             btn.addEventListener('click', () => {
-                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
+                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
                 window.location.href = discordAuth;
             });
         });
 
-        // Exemple de récupération du token d'accès dans l'URL après redirection
+        // Gestion de la connexion utilisateur après redirection OAuth2
         window.addEventListener('load', () => {
             if (window.location.hash) {
                 const params = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = params.get('access_token');
                 if (accessToken) {
-                    // Ici, vous pouvez utiliser le token pour appeler l'API Discord (ex: afficher l'utilisateur)
-                    // fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + accessToken } })
-                    //     .then(res => res.json())
-                    //     .then(user => { ... });
+                    fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            'Authorization': 'Bearer ' + accessToken
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(user => {
+                        showUser(user);
+                    })
+                    .catch(() => {
+                        alert("Erreur lors de la récupération du profil Discord.");
+                    });
                 }
             }
         });
