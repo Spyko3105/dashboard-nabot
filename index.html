@@ -163,31 +163,20 @@ client.login('VOTRE_TOKEN_BOT');
         }
 
         function showGuilds(userGuilds, botGuilds) {
+            // Affiche uniquement les serveurs où l'utilisateur ET le bot sont présents
             const commons = userGuilds.filter(g => botGuilds.includes(g.id));
-            const canInvite = userGuilds.filter(g => !botGuilds.includes(g.id) && hasAdmin(g.permissions));
-
             let html = `
                 <div class="guilds-list" style="margin-top:16px;">
-                    <h4>Serveurs où vous et le bot êtes présents</h4>
+                    <h4>Vos serveurs configurables</h4>
                     <ul style="list-style:none;padding:0;">
                         ${commons.length === 0 ? '<li style="color:#888;">Aucun serveur commun.</li>' : commons.map(guild => `
-                            <li style="margin-bottom:12px;display:flex;align-items:center;background:#23272a;padding:10px 14px;border-radius:8px;">
-                                <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
-                                <span style="font-weight:600;">${guild.name}</span>
-                                ${hasAdmin(guild.permissions) ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
-                            </li>
-                        `).join('')}
-                    </ul>
-                    <h4 style="margin-top:24px;">Serveurs où vous pouvez inviter le bot</h4>
-                    <ul style="list-style:none;padding:0;">
-                        ${canInvite.length === 0 ? '<li style="color:#888;">Aucun serveur disponible pour invitation.</li>' : canInvite.map(guild => `
-                            <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;">
+                            <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;cursor:pointer;" class="select-guild" data-guild="${guild.id}">
                                 <div style="display:flex;align-items:center;">
                                     <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
                                     <span style="font-weight:600;">${guild.name}</span>
-                                    <span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>
+                                    ${hasAdmin(guild.permissions) ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
                                 </div>
-                                <button class="add-bot-btn" data-guild="${guild.id}" style="background:#5865f2;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:600;">Inviter le bot</button>
+                                <span style="color:#5865f2;font-size:1.2em;"><i class="fa-solid fa-arrow-right"></i></span>
                             </li>
                         `).join('')}
                     </ul>
@@ -197,13 +186,33 @@ client.login('VOTRE_TOKEN_BOT');
             const statusBar = document.querySelector('.status-bar');
             statusBar.insertAdjacentHTML('afterend', html);
 
-            document.querySelectorAll('.add-bot-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+            // Ajoute l'événement pour sélectionner un serveur et afficher sa config
+            document.querySelectorAll('.select-guild').forEach(li => {
+                li.addEventListener('click', function() {
                     const guildId = this.getAttribute('data-guild');
-                    const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&scope=bot+applications.commands&permissions=8&guild_id=${guildId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code`;
-                    window.open(inviteUrl, '_blank');
+                    // Stocke le serveur sélectionné
+                    localStorage.setItem('selected_guild', guildId);
+                    showServerConfig(guildId);
                 });
             });
+        }
+
+        // Affiche la configuration du serveur sélectionné dans la section "Paramètres"
+        function showServerConfig(guildId) {
+            // Appel à votre backend pour récupérer la config du serveur
+            fetch(`/api/guild/${guildId}/config`)
+                .then(res => res.json())
+                .then(config => {
+                    // Affiche la section "Paramètres"
+                    document.querySelectorAll('main > section').forEach(sec => {
+                        sec.style.display = (sec.id === 'settings') ? 'block' : 'none';
+                    });
+                    // Remplit le formulaire avec la config du serveur
+                    document.querySelector('#settings input[type="text"][value="!"]').value = config.prefix || '!';
+                    document.querySelector('#settings input[type="text"][value="Bienvenue sur le serveur !"]').value = config.welcome_message || '';
+                    // Ajoute le nom du serveur dans le titre
+                    document.querySelector('#settings h2').textContent = `Paramètres : ${config.guild_name || guildId}`;
+                });
         }
 
         function updateDashboardStats(stats) {
@@ -279,6 +288,11 @@ client.login('VOTRE_TOKEN_BOT');
                         .then(res => res.json())
                         .then(userGuilds => {
                             showGuilds(userGuilds, botGuilds);
+                            // Si un serveur est déjà sélectionné, affiche sa config
+                            const selectedGuild = localStorage.getItem('selected_guild');
+                            if (selectedGuild && botGuilds.includes(selectedGuild)) {
+                                showServerConfig(selectedGuild);
+                            }
                         });
                     })
                     .catch(() => {
