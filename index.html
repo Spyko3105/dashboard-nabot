@@ -159,56 +159,44 @@ client.login('VOTRE_TOKEN_BOT');
         }
 
         function hasAdmin(permissions) {
-            // 0x8 = ADMINISTRATOR
             return (BigInt(permissions) & 0x8n) === 0x8n;
         }
 
-        // Simulez ici les serveurs où le bot est déjà présent (à remplacer par votre backend)
-        function isBotInGuild(guildId) {
-            // Par exemple, le bot est sur les 2 premiers serveurs de la liste
-            // Remplacez cette logique par un appel backend réel
-            const botGuilds = window._botGuilds || [];
-            return botGuilds.includes(guildId);
-        }
-
-        function showGuilds(guilds) {
-            // Simulez la liste des serveurs où le bot est déjà (à remplacer par backend)
-            // window._botGuilds = ['id1', 'id2', ...];
-            // Pour la démo, on prend les 2 premiers serveurs
-            window._botGuilds = guilds.slice(0, 2).map(g => g.id);
+        function showGuilds(userGuilds, botGuilds) {
+            const commons = userGuilds.filter(g => botGuilds.includes(g.id));
+            const canInvite = userGuilds.filter(g => !botGuilds.includes(g.id) && hasAdmin(g.permissions));
 
             let html = `
                 <div class="guilds-list" style="margin-top:16px;">
-                    <h4>Vos serveurs Discord</h4>
+                    <h4>Serveurs où vous et le bot êtes présents</h4>
                     <ul style="list-style:none;padding:0;">
-                        ${guilds.map(guild => {
-                            const admin = hasAdmin(guild.permissions);
-                            const botIn = isBotInGuild(guild.id);
-                            return `
-                                <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;">
-                                    <div style="display:flex;align-items:center;">
-                                        <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
-                                        <span style="font-weight:600;">${guild.name}</span>
-                                        ${admin ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
-                                    </div>
-                                    <div>
-                                        ${botIn
-                                            ? '<span title="Le bot est déjà sur ce serveur" style="color:#5865f2;font-size:1.2em;"><i class="fa-brands fa-discord"></i></span>'
-                                            : `<button class="add-bot-btn" data-guild="${guild.id}" style="background:#5865f2;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:600;">Ajouter le bot</button>`
-                                        }
-                                    </div>
-                                </li>
-                            `;
-                        }).join('')}
+                        ${commons.length === 0 ? '<li style="color:#888;">Aucun serveur commun.</li>' : commons.map(guild => `
+                            <li style="margin-bottom:12px;display:flex;align-items:center;background:#23272a;padding:10px 14px;border-radius:8px;">
+                                <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
+                                <span style="font-weight:600;">${guild.name}</span>
+                                ${hasAdmin(guild.permissions) ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <h4 style="margin-top:24px;">Serveurs où vous pouvez inviter le bot</h4>
+                    <ul style="list-style:none;padding:0;">
+                        ${canInvite.length === 0 ? '<li style="color:#888;">Aucun serveur disponible pour invitation.</li>' : canInvite.map(guild => `
+                            <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;">
+                                <div style="display:flex;align-items:center;">
+                                    <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
+                                    <span style="font-weight:600;">${guild.name}</span>
+                                    <span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>
+                                </div>
+                                <button class="add-bot-btn" data-guild="${guild.id}" style="background:#5865f2;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:600;">Inviter le bot</button>
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `;
-            // Supprime l'ancienne liste si elle existe
             document.querySelectorAll('.guilds-list').forEach(e => e.remove());
             const statusBar = document.querySelector('.status-bar');
             statusBar.insertAdjacentHTML('afterend', html);
 
-            // Ajoute l'événement sur les boutons "Ajouter le bot"
             document.querySelectorAll('.add-bot-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const guildId = this.getAttribute('data-guild');
@@ -218,23 +206,6 @@ client.login('VOTRE_TOKEN_BOT');
             });
         }
 
-        document.querySelectorAll('.btn-login').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Utilisez response_type=token pour pouvoir récupérer le token côté front
-                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
-                window.location.href = discordAuth;
-            });
-        });
-
-        // Déconnexion : supprime le token et recharge la page
-        document.querySelectorAll('.btn-logout').forEach(btn => {
-            btn.addEventListener('click', () => {
-                clearToken();
-                window.location.reload();
-            });
-        });
-
-        // --- AJOUT : Récupération des stats, utilisateurs et commandes depuis le backend du bot ---
         function updateDashboardStats(stats) {
             document.querySelector('.dashboard-cards .card:nth-child(1) .number').textContent = stats.guilds ?? '-';
             document.querySelector('.dashboard-cards .card:nth-child(2) .number').textContent = stats.users ?? '-';
@@ -252,67 +223,72 @@ client.login('VOTRE_TOKEN_BOT');
             `).join('');
         }
 
-        // Exemple d'appel à votre backend Node.js relié au bot Discord
         function fetchBotData() {
-            fetch('http://127.0.0.1:3000/api/dashboard') // À adapter selon votre backend
+            // Utilisez le bon endpoint Vercel (API backend déployée)
+            return fetch('/api/dashboard')
                 .then(res => res.json())
                 .then(data => {
                     if (data.stats) updateDashboardStats(data.stats);
                     if (data.commands) updateCommands(data.commands);
-                    // Pour la liste des serveurs où le bot est, mettez à jour window._botGuilds
                     if (data.botGuilds) window._botGuilds = data.botGuilds;
+                    return data.botGuilds || [];
                 })
-                .catch(() => {
-                    // Optionnel : afficher une erreur ou laisser les valeurs par défaut
-                });
+                .catch(() => []);
         }
 
-        // Gestion de la connexion utilisateur après redirection OAuth2
-        window.addEventListener('load', () => {
-            fetchBotData(); // Met à jour stats, users, commandes, guilds du bot
-            let accessToken = getToken();
-
-            // Si on vient d'être redirigé par Discord, on récupère le token dans l'URL
-            if (window.location.hash) {
-                const params = new URLSearchParams(window.location.hash.substring(1));
-                accessToken = params.get('access_token');
-                if (accessToken) {
-                    saveToken(accessToken);
-                    // Nettoie l'URL pour éviter de garder le hash
-                    window.location.hash = '';
-                }
-            }
-
-            if (accessToken) {
-                fetch('https://discord.com/api/users/@me', {
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    }
-                })
-                .then(res => {
-                    if (res.status === 401) throw new Error('Token expiré');
-                    return res.json();
-                })
-                .then(user => {
-                    showUser(user);
-                    fetch('https://discord.com/api/users/@me/guilds', {
-                        headers: {
-                            'Authorization': 'Bearer ' + accessToken
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(guilds => {
-                        showGuilds(guilds);
-                    });
-                })
-                .catch(() => {
-                    clearToken();
-                    alert("Session expirée, veuillez vous reconnecter.");
-                });
-            }
+        document.querySelectorAll('.btn-login').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
+                window.location.href = discordAuth;
+            });
         });
 
-        // Navigation sans recharger la page (SPA-like)
+        document.querySelectorAll('.btn-logout').forEach(btn => {
+            btn.addEventListener('click', () => {
+                clearToken();
+                window.location.reload();
+            });
+        });
+
+        window.addEventListener('load', () => {
+            let botGuilds = [];
+            fetchBotData().then(botGuildsList => {
+                botGuilds = botGuildsList;
+                let accessToken = getToken();
+                if (window.location.hash) {
+                    const params = new URLSearchParams(window.location.hash.substring(1));
+                    accessToken = params.get('access_token');
+                    if (accessToken) {
+                        saveToken(accessToken);
+                        window.location.hash = '';
+                    }
+                }
+                if (accessToken) {
+                    fetch('https://discord.com/api/users/@me', {
+                        headers: { 'Authorization': 'Bearer ' + accessToken }
+                    })
+                    .then(res => {
+                        if (res.status === 401) throw new Error('Token expiré');
+                        return res.json();
+                    })
+                    .then(user => {
+                        showUser(user);
+                        fetch('https://discord.com/api/users/@me/guilds', {
+                            headers: { 'Authorization': 'Bearer ' + accessToken }
+                        })
+                        .then(res => res.json())
+                        .then(userGuilds => {
+                            showGuilds(userGuilds, botGuilds);
+                        });
+                    })
+                    .catch(() => {
+                        clearToken();
+                        alert("Session expirée, veuillez vous reconnecter.");
+                    });
+                }
+            });
+        });
+
         document.querySelectorAll('.sidebar nav a').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -322,11 +298,10 @@ client.login('VOTRE_TOKEN_BOT');
                 document.querySelectorAll('main > section').forEach(sec => {
                     sec.style.display = (sec.id === target) ? 'block' : 'none';
                 });
-                // Optionnel : scroll to top
                 window.scrollTo(0, 0);
             });
         });
-        // Affiche uniquement la section dashboard au chargement
+
         window.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('main > section').forEach(sec => {
                 sec.style.display = (sec.id === 'dashboard') ? 'block' : 'none';
