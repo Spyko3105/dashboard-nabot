@@ -3,128 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NaBot Dashboard</title>
+    <title>Dashboard Bot Discord</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="discord.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <aside class="sidebar">
-            <div class="profile-section" id="profile-section">
-                <div class="profile-header">
-                    <div class="profile-avatar-wrapper">
-                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" id="profile-avatar" class="profile-avatar">
-                        <div class="profile-status"></div>
-                    </div>
-                    <div class="profile-info">
-                        <span id="profile-username">Chargement...</span>
-                        <span id="profile-tag"></span>
-                    </div>
-                </div>
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" alt="Bot Logo" width="48" height="48">
+            <span>Mon Bot</span>
+        </div>
+        <nav>
+            <a href="#dashboard" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="#commands"><i class="fa-solid fa-terminal"></i> Commandes</a>
+            <a href="#stats"><i class="fa-solid fa-chart-bar"></i> Statistiques</a>
+            <a href="#settings"><i class="fa-solid fa-cog"></i> Paramètres</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+        </div>
+    </aside>
+    <div class="main-content">
+        <header>
+            <div class="server-select">
+                <select>
+                    <option>Sélectionner un serveur</option>
+                    <option>Serveur 1</option>
+                    <option>Serveur 2</option>
+                </select>
             </div>
-            
-            <nav class="main-nav">
-                <a href="#overview" class="nav-item active" data-section="overview">
-                    <i class="fas fa-home"></i> Vue d'ensemble
-                </a>
-                <a href="#commands" class="nav-item" data-section="commands">
-                    <i class="fas fa-terminal"></i> Commandes
-                </a>
-                <a href="#automod" class="nav-item" data-section="automod">
-                    <i class="fas fa-shield-alt"></i> Auto-Modération
-                </a>
-                <a href="#welcome" class="nav-item" data-section="welcome">
-                    <i class="fas fa-door-open"></i> Accueil
-                </a>
-                <a href="#economy" class="nav-item" data-section="economy">
-                    <i class="fas fa-coins"></i> Économie
-                </a>
-                <a href="#levels" class="nav-item" data-section="levels">
-                    <i class="fas fa-chart-line"></i> Niveaux
-                </a>
-                <a href="#settings" class="nav-item" data-section="settings">
-                    <i class="fas fa-cog"></i> Paramètres
-                </a>
-            </nav>
-
-            <div class="auth-section">
-                <button id="login-discord" class="discord-login">
-                    <i class="fab fa-discord"></i> Connexion Discord
-                </button>
+            <div class="status-bar">
+                <span class="status online"><i class="fa-solid fa-circle"></i> Bot en ligne</span>
+                <button class="btn-login"><i class="fa-brands fa-discord"></i> Se connecter</button>
             </div>
-        </aside>
-
-        <main class="content">
-            <header class="dashboard-header">
-                <div class="server-info">
-                    <img id="server-icon" src="" alt="Server Icon" class="server-icon">
-                    <select id="server-select" class="server-select">
-                        <option value="">Sélectionner un serveur</option>
-                    </select>
-                </div>
-            </header>
-
-            <!-- Section Vue d'ensemble -->
-            <section id="overview" class="dashboard-section active">
-                <h2>Vue d'ensemble</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Utilisateurs</h3>
-                        <p class="stat-number">0</p>
-                        <i class="fas fa-users stat-icon"></i>
-                    </div>
-                    <div class="stat-card">
+        </header>
+        <main>
+            <section id="dashboard" class="dashboard-section">
+                <h2>Tableau de bord</h2>
+                <div class="dashboard-cards">
+                    <div class="card">
                         <h3>Serveurs</h3>
-                        <p class="stat-number">0</p>
-                        <i class="fas fa-server stat-icon"></i>
+                        <p class="number">3</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="card">
+                        <h3>Utilisateurs</h3>
+                        <p class="number">128</p>
+                    </div>
+                    <div class="card">
                         <h3>Commandes</h3>
-                        <p class="stat-number">0</p>
-                        <i class="fas fa-terminal stat-icon"></i>
+                        <p class="number">24</p>
                     </div>
-                </div>
-                <div class="quick-actions">
-                    <button class="action-btn"><i class="fas fa-ban"></i> Ban rapide</button>
-                    <button class="action-btn"><i class="fas fa-volume-mute"></i> Mute rapide</button>
-                    <button class="action-btn"><i class="fas fa-lock"></i> Verrouiller salon</button>
                 </div>
             </section>
-
-            <!-- Section Commandes -->
             <section id="commands" class="dashboard-section">
                 <h2>Commandes</h2>
-                <div class="commands-container">
-                    <div class="commands-category">
-                        <h3>Modération</h3>
-                        <div class="command-list">
-                            <!-- Les commandes seront ajoutées dynamiquement -->
-                        </div>
-                    </div>
+                <table class="commands-table">
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Description</th>
+                            <th>Activer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/ban</td>
+                            <td>Bannir un utilisateur</td>
+                            <td><input type="checkbox" checked></td>
+                        </tr>
+                        <tr>
+                            <td>/kick</td>
+                            <td>Exclure un utilisateur</td>
+                            <td><input type="checkbox" checked></td>
+                        </tr>
+                        <tr>
+                            <td>/help</td>
+                            <td>Afficher l'aide</td>
+                            <td><input type="checkbox" checked></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section id="stats" class="dashboard-section">
+                <h2>Statistiques</h2>
+                <div class="stats-graph">
+                    <img src="https://quickchart.io/chart?c={type:'bar',data:{labels:['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],datasets:[{label:'Commandes',data:[12,19,3,5,2,3,7]}]}}" alt="Graphique des commandes" style="width:100%;max-width:500px;">
                 </div>
             </section>
-
-            <!-- Section Auto-Modération -->
-            <section id="automod" class="dashboard-section">
-                <h2>Auto-Modération</h2>
-                <div class="settings-grid">
-                    <div class="settings-card">
-                        <h3>Filtres</h3>
-                        <div class="setting-item">
-                            <label>Anti-Spam</label>
-                            <label class="switch">
-                                <input type="checkbox" id="anti-spam">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <!-- Autres options de modération -->
-                    </div>
-                </div>
+            <section id="settings" class="dashboard-section">
+                <h2>Paramètres</h2>
+                <form class="settings-form">
+                    <label>
+                        Préfixe du bot :
+                        <input type="text" value="!">
+                    </label>
+                    <label>
+                        Message de bienvenue :
+                        <input type="text" value="Bienvenue sur le serveur !">
+                    </label>
+                    <button type="submit">Enregistrer</button>
+                </form>
             </section>
-
-            <!-- Les autres sections suivront le même modèle -->
         </main>
+        <footer>
+            <p>&copy; 2023 Mon Bot Discord - Dashboard</p>
+        </footer>
     </div>
+    <script>
+        const CLIENT_ID = '1361826455406772408';
+        const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/';
+        const SCOPE = 'connections identify guilds email applications.commands guilds.members.read';
+
+        document.querySelectorAll('.btn-login').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&integration_type=0&scope=${encodeURIComponent(SCOPE)}`;
+                window.location.href = discordAuth;
+            });
+        });
+
+        // Exemple de récupération du token d'accès dans l'URL après redirection
+        window.addEventListener('load', () => {
+            if (window.location.hash) {
+                const params = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = params.get('access_token');
+                if (accessToken) {
+                    // Ici, vous pouvez utiliser le token pour appeler l'API Discord (ex: afficher l'utilisateur)
+                    // fetch('https://discord.com/api/users/@me', { headers: { Authorization: 'Bearer ' + accessToken } })
+                    //     .then(res => res.json())
+                    //     .then(user => { ... });
+                }
+            }
+        });
+    </script>
 </body>
 </html>
