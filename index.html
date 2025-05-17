@@ -112,11 +112,11 @@
     <script>
         const CLIENT_ID = '1361826455406772408';
         const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/';
-        const SCOPE = 'connections identify guilds email applications.commands guilds.members.read';
+        const SCOPE = 'identify guilds email guilds.members.read applications.commands.permissions.update';
 
         document.querySelectorAll('.btn-login').forEach(btn => {
             btn.addEventListener('click', () => {
-                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&integration_type=0&scope=${encodeURIComponent(SCOPE)}`;
+                const discordAuth = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
                 window.location.href = discordAuth;
             });
         });
