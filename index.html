@@ -163,8 +163,11 @@ client.login('VOTRE_TOKEN_BOT');
         }
 
         function showGuilds(userGuilds, botGuilds) {
-            // Affiche uniquement les serveurs où l'utilisateur ET le bot sont présents
-            const commons = userGuilds.filter(g => botGuilds.includes(g.id));
+            // Correction robuste : certains bots renvoient des IDs en number, d'autres en string
+            const botGuildsStr = botGuilds.map(gid => String(gid));
+            const commons = userGuilds.filter(g => botGuildsStr.includes(String(g.id)));
+            // Debug temporaire pour vérifier les IDs
+            // console.log('userGuilds:', userGuilds.map(g=>g.id), 'botGuilds:', botGuildsStr, 'commons:', commons.map(g=>g.id));
             let html = `
                 <div class="guilds-list" style="margin-top:16px;">
                     <h4>Vos serveurs configurables</h4>
@@ -172,7 +175,7 @@ client.login('VOTRE_TOKEN_BOT');
                         ${commons.length === 0 ? '<li style="color:#888;">Aucun serveur commun.</li>' : commons.map(guild => `
                             <li style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#23272a;padding:10px 14px;border-radius:8px;cursor:pointer;" class="select-guild" data-guild="${guild.id}">
                                 <div style="display:flex;align-items:center;">
-                                    <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
+                                    <img src="https://cdn.discordapp.com/icons/${guild.id}/${guild.icon || ''}.png" alt="icon" style="width:32px;height:32px;border-radius:50%;margin-right:10px;background:#2c2f33;">
                                     <span style="font-weight:600;">${guild.name}</span>
                                     ${hasAdmin(guild.permissions) ? '<span title="Admin" style="color:#43b581;margin-left:8px;"><i class="fa-solid fa-shield-halved"></i></span>' : ''}
                                 </div>
@@ -186,11 +189,9 @@ client.login('VOTRE_TOKEN_BOT');
             const statusBar = document.querySelector('.status-bar');
             statusBar.insertAdjacentHTML('afterend', html);
 
-            // Ajoute l'événement pour sélectionner un serveur et afficher sa config
             document.querySelectorAll('.select-guild').forEach(li => {
                 li.addEventListener('click', function() {
                     const guildId = this.getAttribute('data-guild');
-                    // Stocke le serveur sélectionné
                     localStorage.setItem('selected_guild', guildId);
                     showServerConfig(guildId);
                 });
