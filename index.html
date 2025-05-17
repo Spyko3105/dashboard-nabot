@@ -136,6 +136,17 @@ client.login('VOTRE_TOKEN_BOT');
         const REDIRECT_URI = 'https://dashboard-nabot.vercel.app/';
         const SCOPE = 'guilds identify';
 
+        // Sauvegarde et récupère le token dans le localStorage pour garder la connexion
+        function saveToken(token) {
+            localStorage.setItem('discord_token', token);
+        }
+        function getToken() {
+            return localStorage.getItem('discord_token');
+        }
+        function clearToken() {
+            localStorage.removeItem('discord_token');
+        }
+
         function showUser(user) {
             const statusBar = document.querySelector('.status-bar');
             statusBar.innerHTML = `
@@ -215,6 +226,14 @@ client.login('VOTRE_TOKEN_BOT');
             });
         });
 
+        // Déconnexion : supprime le token et recharge la page
+        document.querySelectorAll('.btn-logout').forEach(btn => {
+            btn.addEventListener('click', () => {
+                clearToken();
+                window.location.reload();
+            });
+        });
+
         // --- AJOUT : Récupération des stats, utilisateurs et commandes depuis le backend du bot ---
         function updateDashboardStats(stats) {
             document.querySelector('.dashboard-cards .card:nth-child(1) .number').textContent = stats.guilds ?? '-';
@@ -251,33 +270,67 @@ client.login('VOTRE_TOKEN_BOT');
         // Gestion de la connexion utilisateur après redirection OAuth2
         window.addEventListener('load', () => {
             fetchBotData(); // Met à jour stats, users, commandes, guilds du bot
+            let accessToken = getToken();
+
+            // Si on vient d'être redirigé par Discord, on récupère le token dans l'URL
             if (window.location.hash) {
                 const params = new URLSearchParams(window.location.hash.substring(1));
-                const accessToken = params.get('access_token');
+                accessToken = params.get('access_token');
                 if (accessToken) {
-                    fetch('https://discord.com/api/users/@me', {
+                    saveToken(accessToken);
+                    // Nettoie l'URL pour éviter de garder le hash
+                    window.location.hash = '';
+                }
+            }
+
+            if (accessToken) {
+                fetch('https://discord.com/api/users/@me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    }
+                })
+                .then(res => {
+                    if (res.status === 401) throw new Error('Token expiré');
+                    return res.json();
+                })
+                .then(user => {
+                    showUser(user);
+                    fetch('https://discord.com/api/users/@me/guilds', {
                         headers: {
                             'Authorization': 'Bearer ' + accessToken
                         }
                     })
                     .then(res => res.json())
-                    .then(user => {
-                        showUser(user);
-                        fetch('https://discord.com/api/users/@me/guilds', {
-                            headers: {
-                                'Authorization': 'Bearer ' + accessToken
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(guilds => {
-                            showGuilds(guilds);
-                        });
-                    })
-                    .catch(() => {
-                        alert("Erreur lors de la récupération du profil Discord.");
+                    .then(guilds => {
+                        showGuilds(guilds);
                     });
-                }
+                })
+                .catch(() => {
+                    clearToken();
+                    alert("Session expirée, veuillez vous reconnecter.");
+                });
             }
+        });
+
+        // Navigation sans recharger la page (SPA-like)
+        document.querySelectorAll('.sidebar nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.getAttribute('href').replace('#', '');
+                document.querySelectorAll('main > section').forEach(sec => {
+                    sec.style.display = (sec.id === target) ? 'block' : 'none';
+                });
+                // Optionnel : scroll to top
+                window.scrollTo(0, 0);
+            });
+        });
+        // Affiche uniquement la section dashboard au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('main > section').forEach(sec => {
+                sec.style.display = (sec.id === 'dashboard') ? 'block' : 'none';
+            });
         });
     </script>
 </body>
