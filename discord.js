@@ -19,4 +19,4 @@ client.on('messageCreate', message => {
     }
 });
 
-client.login('VOTRE_TOKEN_BOT');
+client.login('MTM2MTgyNjQ1NTQwNjc3MjQwOA.Gyx4Vr.TK3-jOXKbDqCiFxjNFLCpe6uFCvsogwfcM6m5M');
